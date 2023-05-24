@@ -794,6 +794,10 @@ plr:GetMouse().KeyDown:Connect(function(key)
 			if death == true then return end
 			slapkick()
 		end
+		if key == "p" then
+			if death == true then return end
+			jojopose()
+		end
 		if key == "z" then
 			if death == true then return end
 			plr.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.hit.p.X, mouse.hit.p.Y+1, mouse.hit.p.Z)
