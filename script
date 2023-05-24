@@ -526,25 +526,25 @@ function jojopose()
 		posing = true
 		rs.Menacing:FireServer(true)
 		poseanimation = Instance.new("Animation")
-		poseanimation.AnimationId = "rbxassetid://5535290706"
+		poseanimation.AnimationId = "rbxassetid://6091889867"
 		poseanim = plr.Character.Humanoid:LoadAnimation(poseanimation)
-		MainSoundSystem:Execute({["Action"] = "Create",["Id"] = 6913550990,["Volume"] = 5,["StartPosition"] = 2, ["Loop"] = false})
 		poseanim:Play()
-		wait(2.2)
+		wait(2.1)
 		poseanim:AdjustSpeed(0)
 		wait(0.1)
 		hum.WalkSpeed = 0
 		hum.JumpPower = 0
+        MainSoundSystem:Execute({["Action"] = "Create",["Id"] = 6847929757,["Volume"] = 1,["StartPosition"] = 1, ["Loop"] = true})
 		Active = true
 		repeat 
 			wait()
-			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(2.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
-			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(-0.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
-			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(-3.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
+            rs.Damage12:FireServer(hum, la.CFrame * CFrame.new(0,0,0), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
+            rs.Damage12Sans:FireServer(hum, ra.CFrame * CFrame.new(0,0,0), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
 		until Active == false
 	else
 		rs.Menacing:FireServer(false)
 		poseanim:Stop()
+        MainSoundSystem:Execute({["Action"] = "Destroy",["Id"] = 6847929757})
 		hum.WalkSpeed = 12
 		hum.JumpPower = 50
 		posing = false
