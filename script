@@ -1,1 +1,1031 @@
-yes yes yes
+local uis = game:GetService("UserInputService")
+local ABDSound = {}
+ABDSound.Sounds = {}
+local TweenService = game:GetService("TweenService")
+local plr = game.Players.LocalPlayer
+local debounce = false
+local l = game:GetService("Lighting")
+local chr = plr.Character
+local HumanoidRootPart1 = game.Players.LocalPlayer.Character.HumanoidRootPart
+local getLighting = game:GetService("Lighting")
+local PunchDeb = false
+local LpHum = plr.Character.Humanoid
+local mouse = plr:GetMouse()
+local BarrageDeb = false
+local HealBarrageDeb = false
+local s = chr:WaitForChild("Stand")
+local sh = s:WaitForChild("Stand Head")
+local stor = s:WaitForChild("Stand Torso")
+local sra = s:WaitForChild("Stand Right Arm")
+local sla = s:WaitForChild("Stand Left Arm")
+local srl = s:WaitForChild("Stand Right Leg")
+local sll = s:WaitForChild("Stand Left Leg")
+local Mode_Cancel = false
+local debounceMode3 = false
+local debounceMode = false
+local OldCFrame = nil
+local debounceMode2 = false
+local debounceModeLegit = true
+local h = chr["Head"]
+local tor = chr["Torso"]
+local ra = chr["Right Arm"]
+local la = chr["Left Arm"]
+local rl = chr["Right Leg"]
+local ll = chr["Left Leg"]
+local deb = false
+local IntValue = Instance.new("IntValue")
+local IntroDeb = false
+local Int_Val_Mod = 0
+local Invisible = false
+local hum = chr.Humanoid
+local hrp = chr.HumanoidRootPart
+local rs = game:GetService("ReplicatedStorage")
+local death = false
+local deathevent = rs.Death
+local deletestand = nil
+local doppioslam = game.ReplicatedStorage.DoppioSlam
+local sg = game:GetService("StarterGui")
+local strongpunchevent = rs.PlayerStrongPunch
+local w = game.Workspace
+local rST = game.ReplicatedStorage
+local p = game.Players.LocalPlayer
+local m = p:GetMouse()
+local rser = game:GetService("RunService")
+local move = false
+local D11S = rST.Damage11Sans
+local D3 = rST.Damage3
+local D12S = rST.Damage12Sans
+local D11 = rST.Damage11
+local VD = rST.VampireDash
+local D12 = rST.Damage12
+local ACH = rST.Anchor
+local debris = game:GetService("Debris")
+local STWC = rST.STWRTZClient
+
+for i,v in pairs(getLighting:GetChildren()) do
+	for i,v2 in pairs(chr:GetChildren())do
+		if v:IsA("LocalScript") and v2:IsA("LocalScript") then
+			if v.Name == v2.Name then
+				deletestand = v2.Name
+			end
+		end
+	end
+end
+
+chr[deletestand]:Destroy()
+
+function roblox()
+	sg:SetCore("SendNotification", {
+		Title = "Credit",
+		Text = "Script Was Made By sheesh#7033",
+		Duration = 5,
+	})
+end
+roblox()
+
+coroutine.resume(coroutine.create(function()
+	while game:GetService("RunService").Stepped:Wait() do
+		for i,v in pairs(game.Players.LocalPlayer.Character.HumanoidRootPart:GetDescendants()) do
+			if v:IsA("BodyVelocity") or v:IsA("BodyPosition")or v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or v:IsA("BodyThrust") then
+				v:Destroy()
+				wait(0.1)
+				v:Destroy()
+			end
+		end
+	end
+end))
+
+local function Asset(Id)
+	return "rbxassetid://"..tostring(Id)
+end
+
+hum.HealthChanged:connect(function()
+	if hum.Health < 1 then
+		rs.RTZ:FireServer(false)
+		wait(0.1)
+		hum:SetStateEnabled(3, false)
+		hum:SetStateEnabled(15, false)
+		deathevent:FireServer(false)
+		wait(0.1)
+		death = true
+	end
+end)
+
+local MainSoundSystem = {
+	["Sounds"] = {},
+	["Preloaded"] = {}
+}
+function MainSoundSystem:Execute(Arguments)
+	if Arguments["Action"] == "Preload" then
+		local Audio = Instance.new("Sound")
+		Audio.Parent = game.ReplicatedStorage
+		Audio.SoundId = "rbxassetid://" .. Arguments["Id"]
+		game.ContentProvider:PreloadAsync({Audio})
+		repeat
+			rser.RenderStepped:Wait()
+		until Audio.TimeLength and Audio.TimeLength > 0
+		table.insert(MainSoundSystem["Preloaded"], {Arguments["Id"], Audio.TimeLength})
+		Audio:Destroy()
+	elseif Arguments["Action"] == "Create" then
+		MainSoundSystem:Execute({
+			["Action"] = "Preload",
+			["Id"] = Arguments["Id"]
+		})
+		if MainSoundSystem:Execute({["Action"] = "Return", ["Request"] = "IsPlaying", ["Id"] = Arguments["Id"]}) then
+			MainSoundSystem:Execute({
+				["Action"] = "Destroy", 
+				["Id"] = Arguments["Id"]
+			})
+		end
+		local SoundSystem = {
+			["Id"] = Arguments["Id"],
+			["Pitch"] = Arguments["Pitch"] or 1,
+			["Volume"] = Arguments["Volume"] or 10,
+			["Loop"] = Arguments["Loop"] or false,
+			["StartPosition"] = Arguments["StartPosition"] or 0,
+			["CFrame"] = Arguments["CFrame"] or game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart"),
+			["Begin"] = tick(),
+			["Break"] = false,
+			["CoolDown"] = false
+		}
+		SoundSystem["TimeLength"] = MainSoundSystem:Execute({
+			["Action"] = "Return",
+			["Request"] = "TimeLength",
+			["Id"] = Arguments["Id"]
+		})
+		if SoundSystem["CFrame"] and SoundSystem["TimeLength"]  then
+			MainSoundSystem["Sounds"]["rbxassetid://" .. Arguments["Id"]] = SoundSystem
+			function SoundSystem:Execute(SoundArguments)
+				if not SoundSystem["CoolDown"] then
+					if SoundArguments["Action"] == "FixTimePosition" then
+						rser.RenderStepped:Wait()
+						SoundArguments["Audio"].TimePosition = SoundSystem["StartPosition"] + ((tick() - SoundSystem["Begin"]) * SoundSystem["Pitch"])
+					elseif SoundArguments["Action"] == "Create" then
+						if not game.Lighting.TS.Value then
+							if game.PlaceId == 2686500207 then
+								game.ReplicatedStorage.Damage11Sans:FireServer(game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"), SoundSystem["CFrame"].CFrame, 0.00001, 0, Vector3.new(), 9e999, "rbxassetid://" .. Arguments["Id"], SoundSystem["Pitch"], SoundSystem["Volume"])
+							elseif game.PlaceId == 7040744449 then
+								game.ReplicatedStorage.Damage12:FireServer(game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"), SoundSystem["CFrame"].CFrame, 0.00001, 0, Vector3.new(), 9e999, "rbxassetid://" .. Arguments["Id"], SoundSystem["Pitch"], SoundSystem["Volume"])
+							end
+						end
+					elseif SoundArguments["Action"] == "Play" then
+						local function Play()
+							SoundSystem["Begin"] = (tick() - 0.015)
+							for Index = 1, SoundArguments["Updates"] do
+								if SoundSystem["Break"] or not SoundSystem then
+									break
+								end
+								SoundSystem:Execute({
+									["Action"] = "Create"
+								})
+								task.wait(0.69625)
+							end
+							if not SoundSystem["Break"] and SoundSystem and SoundSystem["Loop"] then
+								SoundSystem["StartPosition"] = 0
+								SoundArguments["Updates"] = math.ceil(((SoundSystem["TimeLength"] / 0.69625) / SoundSystem["Pitch"]))
+								Play()
+							else
+								SoundSystem:Execute({
+									["Action"] = "Break"
+								})
+								MainSoundSystem["Sounds"]["rbxassetid://" .. Arguments["Id"]] = nil
+								System = nil
+							end
+						end
+						Play()
+					elseif SoundArguments["Action"] == "Break" then
+						SoundSystem["Break"] = true
+						SoundSystem["CoolDown"] = true
+					elseif SoundArguments["Action"] == "Change" then
+						SoundSystem[SoundArguments["Change"]] = SoundArguments["Value"]
+					end
+				end
+			end
+			if (SoundSystem["TimeLength"] - SoundSystem["StartPosition"]) <= 0.69625 then
+				SoundSystem:Execute({
+					["Action"] = "Create"
+				})
+			elseif (SoundSystem["TimeLength"] - SoundSystem["StartPosition"]) > 0.69625 then
+				task.spawn(function()
+					SoundSystem:Execute({
+						["Action"] = "Play",
+						["Updates"] = math.ceil(((SoundSystem["TimeLength"] - SoundSystem["StartPosition"]) / 0.69625) / SoundSystem["Pitch"])
+					})
+				end)
+			end
+		end
+	elseif Arguments["Action"] == "Destroy" then
+		if Arguments["Id"] ~= "All" then
+			for Id, System in next, MainSoundSystem["Sounds"] do
+				if System["Id"] == Arguments["Id"] then
+					System["Loop"] = false
+					System:Execute({
+						["Action"] = "Break"
+					})
+					MainSoundSystem["Sounds"][Id] = nil
+					System = nil
+				end
+			end
+		else
+			for Id, System in next, MainSoundSystem["Sounds"] do
+				System["Loop"] = false
+				System:Execute({
+					["Action"] = "Break"
+				})
+				MainSoundSystem["Sounds"][Id] = nil
+				System = nil
+			end
+			MainSoundSystem["Sounds"] = {}
+		end
+	elseif Arguments["Action"] == "Change" then
+		if Arguments["Id"] ~= "All" then
+			for Id, System in next, MainSoundSystem["Sounds"] do
+				if System["Id"] == Arguments["Id"] then
+					System:Execute({
+						["Action"] = "Change",
+						["Change"] = Arguments["Change"],
+						["Value"] = Arguments["Value"]
+					})
+				end
+			end
+		else
+			for Id, System in next, MainSoundSystem["Sounds"] do
+				System:Execute({
+					["Action"] = "Change",
+					["Change"] = Arguments["Change"],
+					["Value"] = Arguments["Value"]
+				})
+			end
+		end
+	elseif Arguments["Action"] == "Return" then
+		if Arguments["Request"] == "Preloaded" then
+			for Index, Table in next, MainSoundSystem["Preloaded"] do
+				if Table[1] == Arguments["Id"] then
+					return true
+				end
+			end
+			return false
+		elseif Arguments["Request"] == "TimeLength" then
+			for Index, Table in next, MainSoundSystem["Preloaded"] do
+				if Table[1] == Arguments["Id"] then
+					return Table[2]
+				end
+			end
+			return nil
+		elseif Arguments["Request"] == "IsPlaying" then
+			for Id, System in next, MainSoundSystem["Sounds"] do
+				if System["Id"] == Arguments["Id"] then
+					return true
+				end
+			end
+			return false
+		end
+	end
+end
+game.Workspace.Effects.DescendantAdded:Connect(function(Object)
+	if Object.ClassName == "Sound" then
+		if MainSoundSystem["Sounds"][Object.SoundId] then
+			MainSoundSystem["Sounds"][Object.SoundId]:Execute({
+				["Action"] = "FixTimePosition",
+				["Audio"] = Object
+			})
+		end
+	end
+end)
+
+local GUIConnections = {}
+
+function RemakeMenuGui(AbilityName, PowerStat, SpeedStat, DurabilityStat)
+	local Returner = {}
+	pcall(function()
+		for Index, Connection in GUIConnections do
+			if Connection then
+				Connection:Disconnect()
+			end
+		end
+		GUIConnections = {}
+	end)
+	local function MouseOver(GuiObject, EnterText, LeaveText)
+		local Left = false
+		local Enter = GuiObject.MouseEnter:Connect(function()
+			local Index = 1
+			GuiObject.Text = EnterText[Index]
+			coroutine.resume(coroutine.create(function()
+				if #EnterText ~= 1 then
+					repeat
+						wait(0.4)
+						Index = Index + 1
+						GuiObject.Text = EnterText[Index]
+						if Index == #EnterText then
+							Index = 0
+						end
+					until Left == true
+				end
+			end))
+		end)
+		table.insert(GUIConnections, Enter)
+		local Leave = GuiObject.MouseLeave:Connect(function()
+			Left = true
+			GuiObject.Text = LeaveText
+		end)
+		table.insert(GUIConnections, Leave)
+	end
+	if plr.PlayerGui:FindFirstChild("MenuGUI") then
+		if plr.PlayerGui.MenuGUI:FindFirstChild("Background") then
+			for Index, Child in next, plr.PlayerGui.MenuGUI.Background:GetChildren() do
+				if Child:IsA("TextLabel") then
+					if Child.Name == "Power" then
+						Child.Visible = false
+						local Clone = Child:Clone()
+						Clone.Name = "NewStat_"..Child.Name
+						Clone.Parent = Child.Parent
+						Clone.Visible = true
+						Clone.Text = "Destructive Power"
+						MouseOver(Clone, PowerStat, "Destructive Power")
+						Child:Destroy()
+						Returner.Power = Clone
+					elseif Child.Name == "Speed" then
+						Child.Visible = false
+						local Clone = Child:Clone()
+						Clone.Name = "NewStat_"..Child.Name
+						Clone.Parent = Child.Parent
+						Clone.Visible = true
+						Clone.Text = "Speed"
+						MouseOver(Clone, SpeedStat, "Speed")
+						Child:Destroy()
+						Returner.Speed = Clone
+					elseif Child.Name == "Durability" then
+						Child.Visible = false
+						local Clone = Child:Clone()
+						Clone.Name = "NewStat_"..Child.Name
+						Clone.Parent = Child.Parent
+						Clone.Visible = true
+						Clone.Text = "Durability"
+						MouseOver(Clone, DurabilityStat, "Durability")
+						Child:Destroy()
+						Returner.Durability = Clone
+					elseif Child.Name == "Ability" then
+						Child.Visible = false
+						local Clone = Child:Clone()
+						Clone.Name = "NewStat_"..Child.Name
+						Clone.Parent = Child.Parent
+						Clone.Visible = true
+						Clone.Text = AbilityName
+						Child:Destroy()
+						Returner.Ability = Clone
+					end
+				end
+			end
+		end
+	end
+	if Returner.Power then
+		return Returner
+	else
+		return nil
+	end
+end
+
+RemakeMenuGui("The One:\nAbove All", {"☉"}, {"⊕"}, {"∭"})
+
+game.Players.LocalPlayer.Character.Animate.walk.WalkAnim.AnimationId = "rbxassetid://5166114330"
+game.Players.LocalPlayer.Character.Animate.fall.FallAnim.AnimationId = "rbxassetid://5166133986"
+game.Players.LocalPlayer.Character.Animate.jump.JumpAnim.AnimationId = "rbxassetid://2763931895"
+game.Players.LocalPlayer.Character.Animate.idle.Animation1.AnimationId = "rbxassetid://5166116703"
+
+rser.RenderStepped:Connect(function()
+	for i,v in pairs(hrp:GetDescendants()) do
+		if v:IsA("BodyVelocity") or v:IsA("BodyPosition")or v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or v:IsA("BodyThrust") then
+			v:Destroy()
+		end
+	end
+end)
+
+coroutine.resume(coroutine.create(function()
+	print("coroutine")
+	chr = game.Players.LocalPlayer.Character
+	Human = chr.Humanoid
+
+	Human:SetStateEnabled(3, true) -- Enables Jumping
+	lleg = chr["Left Leg"]
+	rleg = chr["Right Leg"]
+	larm = chr["Left Arm"]
+	rarm = chr["Right Arm"]
+	head = chr["Head"]
+	tors = chr["Torso"]
+	hrp = chr["HumanoidRootPart"]
+	rs = game:GetService("ReplicatedStorage")
+	a = rs.Anchor
+	Stand = chr.Stand
+	while rser.Stepped:Wait() do
+		Human.PlatformStand = false
+		chr.Ragdoll.Value = false
+		chr.Disabled.Value = false
+		Human.AutoRotate = true
+
+		for i,v in pairs(game.Players.LocalPlayer.Character.HumanoidRootPart:GetChildren()) do
+			if v:IsA("BodyVelocity") or v:IsA("BodyPosition") or v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or v:IsA("BodyThrust") then
+				v:Destroy()
+			end
+		end
+		for index,descendant in pairs(chr:GetDescendants()) do
+			if descendant:IsA("Part") or descendant:IsA('UnionOperation') or descendant:IsA('MeshPart') then
+				descendant.Anchored = false
+			end
+		end
+	end
+end))
+
+rser.RenderStepped:Connect(function()
+	for i,v in pairs(hrp:GetDescendants()) do
+		if v:IsA("BodyVelocity") or v:IsA("BodyPosition")or v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or v:IsA("BodyThrust") then
+			v:Destroy()
+			wait(0.1)
+			v:Destroy()
+		end
+	end
+
+	for index,Descendant in pairs(chr:GetDescendants()) do
+		if Descendant:IsA("Part") or Descendant:IsA('UnionOperation') or Descendant:IsA('MeshPart') then
+			Descendant.Anchored = false
+		end
+	end
+
+end)
+
+function NanHp()
+	game:GetService("ReplicatedStorage").Block:FireServer(true)
+	local Humanoid = game.Players.LocalPlayer.Character.Humanoid
+	game.ReplicatedStorage.GravityShift:FireServer(hum,math.huge*0)
+	game:GetService("ReplicatedStorage").BurnDamage:FireServer(Humanoid, CFrame.new(0, -50, 0), - 0 * math.huge, 0, Vector3.new(0, 0, 0), "rbxassetid://241837157", 0, Color3.new(255, 255, 255), "rbxassetid://260430079", 0, 0)
+	wait()
+	game:GetService("ReplicatedStorage").BurnDamage:FireServer(Humanoid, CFrame.new(0, -50, 0), 0 * math.huge, 0, Vector3.new(0, 0, 0), "rbxassetid://241837157", 0, Color3.new(255, 255, 255), "rbxassetid://260430079", 0, 0)
+end
+NanHp()
+
+-- function JoeMama()
+-- 		for i,v in pairs(hrp:GetDescendants()) do
+-- 			if v:IsA("BodyVelocity") or v:IsA("BodyPosition")or v:IsA("BodyAngularVelocity") or v:IsA("BodyForce") or v:IsA("BodyGyro") or v:IsA("BodyThrust") then
+-- 				v:Destroy()
+-- 				wait(0.1)
+-- 				v:Destroy()
+-- 			end
+-- 		end
+-- JoeMama()
+
+
+function trans1()
+	for i,v in pairs(game.Players.LocalPlayer.Character.Stand:GetDescendants()) do
+		if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Texture") or v:IsA("Decal") then
+			if v.Name == "StandHumanoidRootPart" then
+				game.ReplicatedStorage.Transparency:FireServer(v,1)
+			else
+				game.ReplicatedStorage.Transparency:FireServer(v,1)
+			end
+		end
+	end
+end
+
+function trans0()
+	for i,v in pairs(game.Players.LocalPlayer.Character.Stand:GetDescendants()) do
+		if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Texture") or v:IsA("Decal") then
+			if v.Name == "StandHumanoidRootPart" then
+				game.ReplicatedStorage.Transparency:FireServer(v,1)
+			else
+				game.ReplicatedStorage.Transparency:FireServer(v,0.6)
+			end
+		end
+	end
+end
+-- function FunnyIntro()
+--     local mathSinVal = 0
+--     G_Punch = Instance.new("Animation")
+--     G_Punch.AnimationId = Asset(5621883393)
+--     G_PunchAnim = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(G_Punch)
+--     G_PunchAnim:Play()
+--     rs.RTZEffect:FireServer()
+--     MainSoundSystem:Execute({["Action"] = "Create",["Id"] = 6476533005,["Volume"] = math.huge,["Loop"] = false})
+--     for i = 1,110 do
+--         wait(0.001)
+--         mathSinVal = mathSinVal + 0.01
+--         rs.Damage11:FireServer(hum, hrp.CFrame * CFrame.new(math.sin(mathSinVal * 5)*5, math.cos(mathSinVal * 25)*2, math.sin(mathSinVal * 10)*11), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
+--         rs.Damage11:FireServer(hum, hrp.CFrame * CFrame.new(math.sin(mathSinVal * 4)*12, math.cos(mathSinVal * 25)*2, math.sin(mathSinVal * 4)*18), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
+--         rs.Damage11:FireServer(hum, hrp.CFrame * CFrame.new(math.sin(mathSinVal * 5)*18, math.cos(mathSinVal * 25)*2, math.sin(mathSinVal * 10)*11), 0, 0, Vector3.new(0, 0, 0), 0.02, "rbxassetid://6398250128", 1, 0)
+--         rs.Damage11:FireServer(hum, hrp.CFrame * CFrame.new(math.sin(mathSinVal * 5)*5, math.cos(mathSinVal * 25)*2, math.sin(mathSinVal * 8)*18), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
+--         rs.Damage11:FireServer(hum, hrp.CFrame * CFrame.new(math.sin(mathSinVal * 5)*7, math.cos(mathSinVal * 25)*5, math.sin(mathSinVal * 10)*10), 0, 0, Vector3.new(0, 0, 0), 0.01, "rbxassetid://6398250128", 1, 0)
+--     end
+--     task.wait(4.896)
+--     game:GetService("ReplicatedStorage").RTZ:FireServer(true)
+--     G_PunchAnim:Stop()
+-- end
+-- FunnyIntro()
+
+local tera = true
+local posing = false
+function jojopose()
+	if posing == false then
+		posing = true
+		rs.Menacing:FireServer(true)
+		poseanimation = Instance.new("Animation")
+		poseanimation.AnimationId = "rbxassetid://5535290706"
+		poseanim = plr.Character.Humanoid:LoadAnimation(poseanimation)
+		MainSoundSystem:Execute({["Action"] = "Create",["Id"] = 6913550990,["Volume"] = 5,["StartPosition"] = 2, ["Loop"] = false})
+		poseanim:Play()
+		wait(2.2)
+		poseanim:AdjustSpeed(0)
+		wait(0.1)
+		hum.WalkSpeed = 0
+		hum.JumpPower = 0
+		Active = true
+		repeat 
+			wait()
+			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(2.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
+			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(-0.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
+			game.ReplicatedStorage.Damage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(-3.5,6,5), 1, 0, Vector3.new(), "", 2, Color3.fromHSV(tick() % 2 / 2, 1, 1), "", 0, 0)
+		until Active == false
+	else
+		rs.Menacing:FireServer(false)
+		poseanim:Stop()
+		hum.WalkSpeed = 12
+		hum.JumpPower = 50
+		posing = false
+		Active = false
+	end
+end
+
+function createWeld(obj1, obj2)
+    local weld = Instance.new("WeldConstraint", obj1)
+    weld.Part0 = obj1
+    weld.Part1 = obj2
+end
+
+function createHitbox(obj, sizeMult)
+    local hitbox = Instance.new("Part", chr)
+    hitbox.Name = "hitbox"
+    hitbox.CFrame = obj.CFrame
+    hitbox.Anchored = false
+    hitbox.Transparency = 1
+    hitbox.Size = obj.Size * sizeMult
+    hitbox.Massless = true
+    hitbox.CanCollide = false
+    hitbox.Color = Color3.new(0,0,0)
+    createWeld(hitbox, obj)
+    return hitbox
+end
+
+local debounce = false
+local moveactive = false
+function slapkick()
+    if not moveactive then
+         moveactive = true
+         poseanimation = Instance.new("Animation")
+         poseanimation.AnimationId = "rbxassetid://3579948827"
+         slapanim = plr.Character.Humanoid:LoadAnimation(poseanimation)
+         slapanim:Play(0.1, 1, 2)
+         task.wait(0.15)
+         local hb = createHitbox(ra, 1.3)
+         local plrHit = {}
+         hb.Touched:Connect(function(hit)
+            if hit.parent:FindFirstChild("Humanoid") and hit.parent.Name ~= plr.Name and not debounce then
+                debounce = true
+                if not table.find(plrHit, hit.parent) then
+                    table.insert(plrHit, hit.parent)
+                    D11S:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0, Vector3.new(0, 0, 0), 0.001, "rbxassetid://9076225494", 1, 5)
+                    D3:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0.5, Vector3.new(0, 30, 10), 0.01, "rbxassetid://1921987900", 1, 20)
+                    rs.Damage:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 15, 0.3, hrp.CFrame.LookVector*20.5, "rbxassetid://241837157", 0.075, Color3.new(255,255,255), "rbxassetid://8704616653", 1, 3.5)
+                 end
+            end
+             debounce = false
+         end)
+         debris:AddItem(hb, 0.4)
+         task.wait(0.4)
+         
+         poseranimation = Instance.new("Animation")
+         poseranimation.AnimationId = "rbxassetid://3804938028"
+         highkickanim = plr.Character.Humanoid:LoadAnimation(poseranimation)
+         highkickanim:Play(0.1, 2, 3)
+         local hb2 = createHitbox(rl, 1.5)
+         local plrHit2 = {}
+         hb2.Touched:Connect(function(hit)
+            if hit.parent:FindFirstChild("Humanoid") and hit.parent.Name ~= plr.Name and not debounce then
+                debounce = true
+                if not table.find(plrHit2, hit.parent) then
+                    table.insert(plrHit2, hit.parent)
+                    D11S:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0, Vector3.new(0, 0, 0), 0.001, "rbxassetid://6265148218", 1, 5)
+                    D3:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0.5, Vector3.new(0, 30, 10), 0.01, "rbxassetid://1921987900", 1, 20)
+                    rs.Damage:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 15, 0.3, hrp.CFrame.LookVector*20.5, "rbxassetid://241837157", 0.075, Color3.new(255,255,255), "rbxassetid://8704616653", 1, 3.5)
+                    rs.Knock:FireServer(hit.parent.Humanoid)
+                 end
+            end
+             debounce = false
+         end)
+         debris:AddItem(hb2, 0.4)
+         task.wait(0.4)
+         moveactive = false
+    end
+ end
+
+-- local punchdeb = false
+function punch()
+	pcall(function()
+		G_Punch = Instance.new("Animation")
+		G_Punch.AnimationId = Asset(4481995443)
+		G_PunchAnim = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(G_Punch)
+		G_PunchAnim:Play()
+        --game.ReplicatedStorage.Damage11Sans:FireServer(hum, hrp.CFrame, 99, 0, Vector3.new(0, 0, 0), 1e-320, "rbxassetid://5835032207", 1, 20)
+		-- coroutine.resume(coroutine.create(function()
+		-- 	repeat
+		-- 		wait()
+		-- 		D12S:FireServer(hum,ra.CFrame, 0, 0, Vector3.new(0, 0, -1), 0.0045, "", 0.1, 20)
+		-- 	until punchdeb == true
+		-- end))
+		local hitbox1 = Instance.new("Part",game.Players.LocalPlayer.Character)
+		hitbox1.CFrame = ra.CFrame
+		hitbox1.Name = "hitbox"
+		hitbox1.Anchored = false
+		hitbox1.CanCollide = false
+		local weld = Instance.new("WeldConstraint",hitbox1)
+		weld.Part0 = hitbox1
+		weld.Part1 = ra
+		hitbox1.Size = ra.Size*1.5
+		hitbox1.Massless = true
+		hitbox1.Transparency = 1
+		hitbox1.Color = Color3.new(0,0,0)
+		hitbox1.Touched:Connect(function(hit)
+			if hit.Parent:FindFirstChild("Humanoid") and hit.Parent.Name ~= game.Players.LocalPlayer.Name then
+				if hit.Parent:FindFirstChild("HumanoidRootPart") then
+					--local A_1 = hit.Parent.Humanoid
+					--local A_2 = hit.Parent.HumanoidRootPart.CFrame
+					--local A_3 = 0 -- Damage value, dont go above 99, on burn damage you can go to inf
+					--local A_4 = 0.25 -- Every attack inserts a new instance of a velocity in the torso, this is the duration of the velocity its limit is 10
+					--local A_5 = plr.Character.HumanoidRootPart.CFrame.LookVector*300+Vector3.new(0,0,0) 
+					--local A_6 = "rbxassetid://"
+					--local A_7 = 0.075
+					--local A_8 = Color3.new(255, 0, 255)
+					--local A_9 = "rbxassetid://0"
+					--local A_10 = 0.9
+					--local A_11 = 0.44
+					--local Event = game:GetService("ReplicatedStorage").Damage
+					--Event:FireServer(A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10, A_11)
+					--game.ReplicatedStorage.HamonSword:FireServer(hit.Parent.Humanoid, 1, 0.1, Vector3.new(0,0,0))
+					game.ReplicatedStorage.Damage12Sans:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 0.1, "rbxassetid://9117969584", 1, 20)
+					game.ReplicatedStorage.Damage11Sans:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 0.3, "rbxassetid://8646342913", 1, 20)
+					wait(0.3)
+				end
+			end
+			wait(0.1)
+			if hitbox1 then
+				--punchdeb = true
+				hitbox1:Destroy() 
+			end
+		end)
+	end)
+end
+function bdmg1()
+	local hitbox1 = Instance.new("Part",chr)
+	hitbox1.CFrame = la.CFrame
+	hitbox1.Name = "hitbox"
+	hitbox1.Anchored = false
+	hitbox1.CanCollide = false
+	local weld = Instance.new("WeldConstraint",hitbox1)
+	weld.Part0 = hitbox1
+	weld.Part1 = la
+	hitbox1.Size = la.Size * 1
+	hitbox1.Massless = true
+	hitbox1.Transparency = 1
+	hitbox1.Color = Color3.new(0,0,0)
+	hitbox1.Touched:Connect(function(hit)
+		if hit.Parent:FindFirstChild("Humanoid") and hit.Parent.Name ~= game.Players.LocalPlayer.Name then
+			if hit.Parent:FindFirstChild("HumanoidRootPart") then
+				rs.Damage11Sans:FireServer(hit.Parent.Humanoid, hit.Parent.Torso.CFrame*CFrame.new(math.random(-1.5,1.5), math.random(0,2), math.random(0,1)), 30, 0, Vector3.new(0, 0, -20), 0.045, "rbxassetid://5886412948", 1, 20)
+				rs.Damage12Sans:FireServer(hit.Parent.Humanoid, hit.Parent.Torso.CFrame*CFrame.new(math.random(-1.5,1.5), math.random(0,2), math.random(0,1)), 30, 0, Vector3.new(0, 0, -20), 0.045, "", 0.3, 20)
+			end
+		end
+		wait(0.1)
+		if BarrageDeb == true then
+			if hitbox1 then
+				hitbox1:Destroy() 
+			end
+		end
+	end)
+end
+function axekick()
+	pcall(function()
+		G_Punch = Instance.new("Animation")
+		G_Punch.AnimationId = Asset(3445853933)
+		G_PunchAnim = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(G_Punch)
+		G_PunchAnim:Play()
+		local hitbox1 = Instance.new("Part",game.Players.LocalPlayer.Character)
+		hitbox1.CFrame = rl.CFrame
+		hitbox1.Name = "hitbox"
+		hitbox1.Anchored = false
+		hitbox1.CanCollide = false
+		local weld = Instance.new("WeldConstraint",hitbox1)
+		weld.Part0 = hitbox1
+		weld.Part1 = rl
+		hitbox1.Size = rl.Size*1.5
+		hitbox1.Massless = true
+		hitbox1.Transparency = 1
+		hitbox1.Color = Color3.new(0,0,0)
+		hitbox1.Touched:Connect(function(hit)
+			if hit.Parent:FindFirstChild("Humanoid") and hit.Parent.Name ~= game.Players.LocalPlayer.Name then
+				if hit.Parent:FindFirstChild("HumanoidRootPart") then
+					--local A_1 = hit.Parent.Humanoid
+					--local A_2 = hit.Parent.HumanoidRootPart.CFrame
+					--local A_3 = 0 -- Damage value, dont go above 99, on burn damage you can go to inf
+					--local A_4 = 0.25 -- Every attack inserts a new instance of a velocity in the torso, this is the duration of the velocity its limit is 10
+					--local A_5 = plr.Character.HumanoidRootPart.CFrame.LookVector*300+Vector3.new(0,0,0) 
+					--local A_6 = "rbxassetid://"
+					--local A_7 = 0.075
+					--local A_8 = Color3.new(255, 0, 255)
+					--local A_9 = "rbxassetid://0"
+					--local A_10 = 0.9
+					--local A_11 = 0.44
+					--local Event = game:GetService("ReplicatedStorage").Damage
+					--Event:FireServer(A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10, A_11)
+					--game.ReplicatedStorage.HamonSword:FireServer(hit.Parent.Humanoid, 1, 0.1, Vector3.new(0,0,0))
+					game.ReplicatedStorage.Damage11:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 0.5, "rbxassetid://9117969584", 1, 20)
+					game.ReplicatedStorage.Damage12Sans:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 0.3, "rbxassetid://9117969584", 1, 20)
+					game.ReplicatedStorage.Damage11Sans:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 1e-320, "rbxassetid://5677173879", 1, 20)
+					wait(0.3)
+				end
+			end
+			wait(0.1)
+			if hitbox1 then
+				hitbox1:Destroy() 
+			end
+		end)
+	end)
+end
+----modes
+-- local templateval = 0
+-- local template = false
+-- plr:GetMouse().KeyDown:Connect(function(key)
+--     if key == "2" then
+--         if death == true then return end
+--         templateval = templateval +1
+--         if templateval == 1 then
+--             game.ReplicatedStorage.Damage11Sans:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.Head.CFrame * CFrame.new(0, 0.85, -0.1), 0.0001, 0, Vector3.new(9e999, 9e999, 0), 0.0025, "rbxassetid://6427919074", 1, 20)
+--             wait(0.8)
+--             rs.RTZ:FireServer(true)
+--             template = true
+--             local ParticlePosition = 0
+--             repeat
+--                 ParticlePosition = ParticlePosition + 0.125
+--                 game.ReplicatedStorage.Damage31:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(2.5 * math.sin(ParticlePosition), 1 * math.sin(ParticlePosition) , 2.5 * math.cos(ParticlePosition)), 1e-320, 0, Vector3.new(0, 0, 0), 0.005, "rbxassetid://", 1, 20)
+--                 game.ReplicatedStorage.ULFDamage:FireServer(game.Players.LocalPlayer.Character.Humanoid, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(2.5 * math.sin(ParticlePosition), -1 * math.sin(ParticlePosition) , 2.5 * math.cos(ParticlePosition)), 1e-320, 0, Vector3.new(0, 0, 0), 0.005, "rbxassetid://", 1, 20)
+--                 task.wait()
+--             until template == false
+--         end
+--         if templateval == 2 then
+--             rs.RTZ:FireServer(false)
+--             templateval = 0
+--             template = false
+--         end
+--     end
+-- end
+-----
+plr:GetMouse().KeyDown:Connect(function(key)
+	if key == "r" then
+		if death == true then return end
+		--if punchdeb == true then punchdeb = false end
+			punch()
+		end
+		if key == "t" then
+			if death == true then return end
+			slapkick()
+		end
+		if key == "z" then
+			if death == true then return end
+			plr.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.hit.p.X, mouse.hit.p.Y+1, mouse.hit.p.Z)
+			wait()
+			game.ReplicatedStorage.Damage11Sans:FireServer(game.Players.LocalPlayer.Character.Humanoid, hrp.CFrame * CFrame.new(0, -10, 0), 0, 0, Vector3.new(0, 0, 0), 0, "rbxassetid://2554263184", 1, 100)
+		end
+	end)
+--enum keycode
+uis.InputBegan:Connect(function(Input, IsTyping)
+	if IsTyping then return end
+	if Input.KeyCode == Enum.KeyCode.E then
+		if death == true then return end
+		if BarrageDeb == true then
+			BarrageDeb = false
+		end
+		bdmg1()
+		barrageanimation = Instance.new("Animation")
+		barrageanimation.AnimationId = Asset(3445788051)
+		barrageanim = plr.Character.Humanoid:LoadAnimation(barrageanimation)
+		barrageanim:Play(0.1, 1, 2.5)
+		barrageanim:AdjustSpeed(1)
+		barrageanim.Looped = true
+		repeat
+			rs.Damage12Sans:FireServer(hum, ra.CFrame, 30, 0, Vector3.new(0, 0, -20), 0.0045, "", 0.3, 20)
+			rs.Damage12Sans:FireServer(hum, la.CFrame, 30, 0, Vector3.new(0, 0, -20), 0.0045, "", 0.3, 20)
+			wait(0.01)
+		until BarrageDeb == true
+	end
+end)
+uis.InputEnded:Connect(function(Input, IsTyping)
+	if IsTyping then return end
+	if Input.KeyCode == Enum.KeyCode.E then
+		if death == true then return end
+		barrageanim:Stop()
+		barrageanim.Looped = false
+		BarrageDeb = true
+	end
+end)
+-----
+--coroutine.resume(coroutine.create(function()
+--repeat
+--wait(0.4)
+--d12s:FireServer(hum,h.CFrame, 0, 0, Vector3.new(0, 0, -1), 0.2, "", 0.1, 20)
+--end))
+--game.ReplicatedStorage.PlayerStrongPunch:FireServer(Vector3.new(.1,.1,.1),Vector3.new(1,10,1),BrickColor.new("Institutional white")) strong punch effect
+----MainSoundSystem:Execute({["Action"] = "Create",["Id"] = 4463899554,["Volume"] = math.huge})
+--[[ if u wanna make a combo
+function createWeld(obj1, obj2)
+local weld = Instance.new("WeldConstraint", obj1)
+weld.Part0 = obj1
+weld.Part1 = obj2
+end
+
+function createHitbox(obj, sizeMult)
+local hitbox = Instance.new("Part", chr)
+hitbox.Name = "hitbox"
+hitbox.CFrame = obj.CFrame
+hitbox.Anchored = false
+hitbox.Transparency = 1
+hitbox.Size = obj.Size * sizeMult
+hitbox.Massless = true
+hitbox.CanCollide = false
+hitbox.Color = Color3.new(0,0,0)
+createWeld(hitbox, obj)
+return hitbox
+end
+
+local debounce = false
+local moveactive = false
+function slapkick()
+if not moveactive then
+     moveactive = true
+     poseanimation = Instance.new("Animation")
+     poseanimation.AnimationId = "rbxassetid://3579948827"
+     slapanim = plr.Character.Humanoid:LoadAnimation(poseanimation)
+     slapanim:Play(0.1, 1, 2)
+     task.wait(0.15)
+     local hb = createHitbox(ra, 1.3)
+     local plrHit = {}
+     hb.Touched:Connect(function(hit)
+        if hit.parent:FindFirstChild("Humanoid") and hit.parent.Name ~= plr.Name and not debounce then
+            debounce = true
+            if not table.find(plrHit, hit.parent) then
+                table.insert(plrHit, hit.parent)
+                D11S:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0, Vector3.new(0, 0, 0), 0.001, "rbxassetid://9076225494", 1, 5)
+                D3:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0.5, Vector3.new(0, 30, 10), 0.01, "rbxassetid://1921987900", 1, 20)
+                rs.Damage:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 15, 0.3, hrp.CFrame.LookVector*20.5, "rbxassetid://241837157", 0.075, Color3.new(255,255,255), "rbxassetid://8704616653", 1, 3.5)
+             end
+        end
+         debounce = false
+     end)
+     debris:AddItem(hb, 0.4)
+     task.wait(0.4)
+     
+     poseranimation = Instance.new("Animation")
+     poseranimation.AnimationId = "rbxassetid://3804938028"
+     highkickanim = plr.Character.Humanoid:LoadAnimation(poseranimation)
+     highkickanim:Play(0.1, 2, 3)
+     local hb2 = createHitbox(rl, 1.5)
+     local plrHit2 = {}
+     hb2.Touched:Connect(function(hit)
+        if hit.parent:FindFirstChild("Humanoid") and hit.parent.Name ~= plr.Name and not debounce then
+            debounce = true
+            if not table.find(plrHit2, hit.parent) then
+                table.insert(plrHit2, hit.parent)
+                D11S:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0, Vector3.new(0, 0, 0), 0.001, "rbxassetid://6265148218", 1, 5)
+                D3:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 30, 0.5, Vector3.new(0, 30, 10), 0.01, "rbxassetid://1921987900", 1, 20)
+                rs.Damage:FireServer(hit.parent.Humanoid, hit.parent.HumanoidRootPart.CFrame, 15, 0.3, hrp.CFrame.LookVector*20.5, "rbxassetid://241837157", 0.075, Color3.new(255,255,255), "rbxassetid://8704616653", 1, 3.5)
+                rs.Knock:FireServer(hit.parent.Humanoid)
+             end
+        end
+         debounce = false
+     end)
+     debris:AddItem(hb2, 0.4)
+     task.wait(0.4)
+     moveactive = false
+end
+end]]
+--[[if u wanna make a kamehameha sort of attack
+local gammaraydeb = false
+function gammarayburst()
+	pcall(function()
+		G_Punch = Instance.new("Animation")
+		G_Punch.AnimationId = Asset(3923038092)
+		G_PunchAnim = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(G_Punch)
+		G_PunchAnim:Play()
+		local fxpos = 0
+		game.ReplicatedStorage.Damage11Sans:FireServer(hum, hrp.CFrame, 99, 0, Vector3.new(0, 0, 0), 1e-320, "rbxassetid://5835032207", 1, 20)
+		local hitbox1 = Instance.new("Part",game.Players.LocalPlayer.Character)
+		hitbox1.CFrame = hrp.CFrame
+		hitbox1.Name = "hitbox"
+		hitbox1.Anchored = false
+		hitbox1.CanCollide = false
+		local weld = Instance.new("WeldConstraint",hitbox1)
+		weld.Part0 = hitbox1
+		weld.Part1 = hrp
+		hitbox1.Size = Vector3.new(50,10,12)
+		hitbox1.Massless = true
+		hitbox1.Transparency = 1
+		hitbox1.Color = Color3.new(0,0,0)
+		coroutine.resume(coroutine.create(function()
+			repeat 
+				wait()
+				if fxpos>=30 then
+					fxpos=0
+				end
+				fxpos=fxpos+3
+				game.ReplicatedStorage.Damage12Sans:FireServer(game.Players.LocalPlayer.Character.Humanoid,game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame,0,0,Vector3.new(0,0,0),0.17,"",0,0)
+				game.ReplicatedStorage.Damage12Sans:FireServer(game.Players.LocalPlayer.Character.Humanoid,hitbox1.CFrame*CFrame.new(fxpos,0,0),0,0,Vector3.new(0,0,0),0.1,"",0,0)
+				game.ReplicatedStorage.Damage12Sans:FireServer(game.Players.LocalPlayer.Character.Humanoid,hitbox1.CFrame*CFrame.new(-fxpos,0,0),0,0,Vector3.new(0,0,0),0.1,"",0,0)
+			until gammaraydeb == true
+		end))
+		hitbox1.Touched:Connect(function(hit)
+			if hit.Parent:FindFirstChild("Humanoid") and hit.Parent.Name ~= game.Players.LocalPlayer.Name then
+				if hit.Parent:FindFirstChild("HumanoidRootPart") then
+					--local A_1 = hit.Parent.Humanoid
+					--local A_2 = hit.Parent.HumanoidRootPart.CFrame
+					--local A_3 = 0 -- Damage value, dont go above 99, on burn damage you can go to inf
+					--local A_4 = 0.25 -- Every attack inserts a new instance of a velocity in the torso, this is the duration of the velocity its limit is 10
+					--local A_5 = plr.Character.HumanoidRootPart.CFrame.LookVector*300+Vector3.new(0,0,0) 
+					--local A_6 = "rbxassetid://"
+					--local A_7 = 0.075
+					--local A_8 = Color3.new(255, 0, 255)
+					--local A_9 = "rbxassetid://0"
+					--local A_10 = 0.9
+					--local A_11 = 0.44
+					--local Event = game:GetService("ReplicatedStorage").Damage
+					--Event:FireServer(A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10, A_11)
+					game.ReplicatedStorage.Damage3:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 0.1, "rbxassetid://9117969584", 1, 20)
+					game.ReplicatedStorage.Damage11Sans:FireServer(hit.Parent.Humanoid, hit.Parent.HumanoidRootPart.CFrame, 99, 0, Vector3.new(0, 0, 0), 1e-320, "rbxassetid://5801257793", 1, 20)
+				end
+			end
+			wait(2)
+			if hitbox1 then
+				gammaraydeb = true
+				hitbox1:Destroy()
+			end
+		end)
+	end)
+end
+--]]
+--[[ and then this for like giving godmode through messages or smth
+function vk(name)
+    for i,v in pairs(game.Players:GetPlayers()) do
+        if string.lower(v.Name):match(string.lower(name)) then
+            return v 
+        end
+        if string.lower(v.DisplayName):match(string.lower(name)) then
+            return v
+        end 
+    end
+    return nil
+end
+    
+game.Players.LocalPlayer.Chatted:Connect(function(message)
+    local loweredText2 = string.lower(message)
+    if string.find(loweredText2, "!god") then
+    local Target = vk(loweredText2:sub(8))
+    local th = Target.Character.Humanoid
+    local thrp = Target.Character.HumanoidRootPart
+    if Target == game.Players.LocalPlayer then return end
+    if Target then
+    rs.Heal7:FireServer(Target.Character.Humanoid, Target.Character.HumanoidRootPart.CFrame, math.huge*0, 0, Vector3.new(0, 0, 0), 0.1, "rbxassetid://5020631118", 1, 20)  
+    end
+  end
+end)
+local testdeb = false
+game.Players.LocalPlayer.Chatted:Connect(function(message)
+	if death == true then return end
+	local loweredText2 = string.lower(message)
+	if string.find(loweredText2, "!protect") then
+		local Target = vk(loweredText2:sub(8))
+		if testdeb == true then testdeb = false end
+		if Target == game.Players.LocalPlayer then return end
+		if Target then
+			repeat
+			wait()
+			hrp.CFrame = Target.Character.HumanoidRootPart.CFrame*CFrame.new(1,0,2)
+			until testdeb == true
+		end
+	end
+end)
+game.Players.LocalPlayer.Chatted:Connect(function(message)
+	if death == true then return end
+	local loweredText2 = string.lower(message)
+	if (message == "stop") then
+		local Target = vk(loweredText2:sub(8))
+		if testdeb == true then testdeb = false end
+		if Target == game.Players.LocalPlayer then return end
+		if Target then
+           testdeb = true
+		end
+	end
+end)
+--]]
